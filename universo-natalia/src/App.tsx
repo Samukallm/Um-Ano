@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { SpaceBackground } from './components/SpaceBackground';
 import { Universe } from './components/Universe';
@@ -8,11 +8,26 @@ type AppState = 'intro' | 'universe' | 'outro';
 
 function App() {
   const [currentState, setCurrentState] = useState<AppState>('intro');
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const handleStartJourney = () => {
+    // Tenta tocar a música assim que o usuário clica para entrar no universo
+    if (audioRef.current) {
+      audioRef.current.volume = 0.4; // Volume agradável de fundo
+      audioRef.current.play().catch((err) => {
+        console.log("Autoplay bloqueado pelo navegador:", err);
+      });
+    }
+    setCurrentState('universe');
+  };
 
   return (
     <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', color: 'white', position: 'relative' }}>
       <SpaceBackground />
       
+      {/* Elemento de áudio escondido (coloque o arquivo musica.mp3 na pasta public) */}
+      <audio ref={audioRef} src="/musica.mp3" loop />
+
       <AnimatePresence mode="wait">
         {currentState === 'intro' && (
           <motion.div 
@@ -23,10 +38,10 @@ function App() {
             transition={{ duration: 1.5 }}
             style={introStyles}
           >
-            <h1 style={{ fontFamily: 'serif', fontWeight: 300, letterSpacing: '2px' }}>
+            <h1 style={{ fontFamily: 'serif', fontWeight: 300, letterSpacing: '2px', textAlign: 'center', padding: '0 20px' }}>
               Um ano navegando no mesmo universo.
             </h1>
-            <button onClick={() => setCurrentState('universe')} style={btnStyle}>
+            <button onClick={handleStartJourney} style={btnStyle}>
               Começar Viagem
             </button>
           </motion.div>
@@ -41,7 +56,6 @@ function App() {
             transition={{ duration: 1.5 }}
             style={{ width: '100%', height: '100%' }}
           >
-            {/* AQUI ESTÁ A MÁGICA: Chamando o componente real dos planetas e poemas */}
             <Universe onFinish={() => setCurrentState('outro')} />
           </motion.div>
         )}
